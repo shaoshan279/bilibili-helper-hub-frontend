@@ -72,6 +72,14 @@
               >
                 立即登录
               </v-btn>
+              <v-btn
+                depressed
+                rounded
+                text
+                @click.stop="showLoginDialog2"
+              >
+                CK登录
+              </v-btn>
             </div>
           </v-list-item-content>
         </v-card>
@@ -149,6 +157,29 @@
     </v-dialog>
 
     <v-dialog
+      v-model="ckloginDialogVisible"
+      max-width="528px"
+    >
+      <v-card>
+        <v-card-text>
+      <p>se</p>
+      <input v-model="seMessage">
+      <p>id</p>
+      <input v-model="idMessage">
+      <p>bj</p>
+      <input v-model="bjMessage"/>
+          <v-btn
+            dark
+            text
+            @click="getBilibiliUser2"
+          >
+            登录
+          </v-btn>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
       v-model="removeTaskDialogVisible"
       persistent
       max-width="290"
@@ -206,9 +237,13 @@ export default {
     snackbar: false,
     removeTaskDialogVisible: false,
     loginDialogVisible: false,
+    ckloginDialogVisible: false,
     removeTaskLoading: false,
     overdue: true,
     qrCode: null,
+    seMessage: null,
+    idMessage: null,
+    bjMessage: null,
     icons: [
       {
         icon: 'mdi-qqchat',
@@ -243,9 +278,9 @@ export default {
         this.timer = setInterval(() => {
           this.$http.get(`bilibili/login?oauthKey=${oauthKey}`).then(res => {
             if (res.data.code === 0) {
-              this.$cookies.set('dedeuserid', res.data.dedeuserid, ONE_MONTH * 12, '/', '.cruii.io')
-              this.$cookies.set('sessdata', res.data.sessdata, ONE_MONTH * 12, '/', '.cruii.io')
-              this.$cookies.set('biliJct', res.data.biliJct, ONE_MONTH * 12, '/', '.cruii.io')
+              this.$cookies.set('dedeuserid', res.data.dedeuserid, ONE_MONTH * 12)
+              this.$cookies.set('sessdata', res.data.sessdata, ONE_MONTH * 12)
+              this.$cookies.set('biliJct', res.data.biliJct, ONE_MONTH * 12)
               // this.$cookies.set('dedeuserid', res.data.dedeuserid, ONE_MONTH * 12, '/')
               // this.$cookies.set('sessdata', res.data.sessdata, ONE_MONTH * 12, '/')
               // this.$cookies.set('biliJct', res.data.biliJct, ONE_MONTH * 12, '/')
@@ -263,6 +298,28 @@ export default {
     showLoginDialog () {
       this.loginDialogVisible = true
       this.getQrCode()
+    },
+    showLoginDialog2 () {
+      this.ckloginDialogVisible = true
+    },
+    async getBilibiliUser2 () {
+      const dedeuserid = this.idMessage
+      const sessdata = this.seMessage
+      const biliJct = this.bjMessage
+      if (dedeuserid && sessdata) {
+        await this.$http.get(`bilibili/user?dedeuserid=${dedeuserid}&sessdata=${sessdata}`).then(res => {
+          this.$cookies.set('dedeuserid', dedeuserid, ONE_MONTH * 12)
+          this.$cookies.set('sessdata', sessdata, ONE_MONTH * 12)
+          this.$cookies.set('biliJct', biliJct, ONE_MONTH * 12)
+          this.setUser(res.data)
+        }).catch(err => {
+          if (err.response.status === 401) {
+            this.snackbarMsg = err.response.data.message
+            this.snackbar = true
+            this.logOut()
+          }
+        })
+      }
     },
     async getBilibiliUser () {
       const dedeuserid = this.$cookies.get('dedeuserid')

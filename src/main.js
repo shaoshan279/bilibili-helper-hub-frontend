@@ -10,7 +10,7 @@ Vue.use(VueCookies)
 axios.defaults.withCredentials = true
 Vue.prototype.$http = axios
 Vue.prototype.axios = axios
-const host = 'https://api.cruii.io/bilibili/'
+const host = 'http://localhost:811'
 axios.defaults.baseURL = host
 
 Vue.config.productionTip = false
